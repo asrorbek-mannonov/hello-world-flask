@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: flask-app
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db/flask
+    networks:
+      - flask
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8888:8000"
+    restart: always
+  db:
+    container_name: flask-db
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: flask
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d flask -h 127.0.0.1 -p 5432" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - flask
+    volumes:
+      - pg_data:/var/lib/postgresql
+
+networks:
+  flask:
+    driver: bridge
+
+volumes:
+  pg_data: {}
